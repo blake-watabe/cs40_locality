@@ -1,0 +1,215 @@
+/*******************************************************************************
+* HW3: locality
+* CS 40 Spring 2022
+* README
+* Authors: Blake Watabe (bwatab01), Henry Liu (hliu12)
+*
+*******************************************************************************/
+
+Program Purpose:
+---------------
+
+    The purpose of the program is to modify a UArray2 implementation
+    to be a blocked two-dimensional array implementation. This interface
+    will be used by the A2methods code, and later by our implementation of
+    ppmtrans to run an image rotating program. ppmstrans is polymorphic, meaning
+    it is able to run image rotations using functions from both UArray2 or
+    UArray2B.
+
+Compile/run:
+-----------
+
+    ppmtrans:
+        To compile: "make ppmstrans"
+        To run: "./ppmtrans map_function [-rotation] [rotation˚]
+                    [-time] [time_filename.txt] image_filename.ppm"
+
+
+Acknowledgments:
+---------------
+
+    We are very thankful to the CS40 TA's, who were extremely helpful
+    at breaking down our code and helping us to analyze our problems. We
+    also received a lot of valuable critiques to our design plan, which
+    helped us to save a lot of time during the implementation.
+
+Files:
+-----
+
+uarray2b.c
+uarray2b.h
+uarray2.c
+uarray2.h
+a2test.c
+a2plain.c
+a2blocked.c
+ppmtrans.c
+
+
+Implementation:
+---------------
+
+    We have correctly implemented the uarray2b, which uses the
+    Hanson Uarray interface and the UArray2 interface to construct 
+    a blocked 2d implementation of it. Our uarray2 is able to construct
+    a uarray2 and run without any memory leaks or segmentation faults.
+    We have tested it by making sure our implementation is accepted by a2test.c
+    Additionally, 
+
+    Uarray2b correctly outputs the array in the correct order for our block
+    major mapping function. Our ppmtrans program is able to traverse through
+    the UArray2b and rotate images.
+
+    Similarly, our ppmtrans is implemented properly since it is able
+    to properly make use of both UArray2 and UArray2b mapping functions
+    and rotate images 90 and 180 degrees. We tested this with the 
+    flower image file and wrote the rotated image to a new file and viewed it.
+    We also tested this with the large mobo.ppm file, and it worked as well.
+
+    However, we were unable to implement the features other than 0 degrees,
+    90 degrees, 180 degrees, and -time.
+
+Architecture:
+---------------
+
+    The blocked 2D array was represented as a UArray2, each element of which
+    containing one block. A block was represented as a single UArra -- this
+    guarantees that cells in the same block are in nearby memory locations.
+    Thus, each index of the Uarray (block) represents a cell.
+
+    We performed tranformation of images by storing the image into a Pnm_ppm
+    object and using A2 capabilities powered by our methods and
+    implementations of the plain and blocked 2D arrays. We created an 
+    empty array to put rotated pixels into, and went through each pixel
+    of the original image applying the specified rotation and storing
+    the result into this result array. Firally, the final product was
+    printed to stdout with a helpful Pnm_ppmwrite function.
+
+Part E: 
+---------------
+
+    CPU Specs:
+    ---------------
+    processor   : 0
+    vendor_id   : GenuineIntel
+    cpu family  : 6
+    model               : 85
+    model name  : Intel(R) Xeon(R) Silver 4214Y CPU @ 2.20GHz
+    stepping    : 7
+    microcode   : 0x5000029
+    cpu MHz             : 2194.844
+    cache size  : 16896 KB
+    physical id : 0
+    siblings    : 6
+    core id             : 0
+    cpu cores   : 6
+    apicid              : 0
+    initial apicid      : 0
+    fpu         : yes
+    fpu_exception       : yes
+    cpuid level : 22
+    wp          : yes
+    ---------------
+
+    Tests
+    ---------------
+    Test Image:
+    Image size: 54KB
+
+    Overall time: 811985.000000ms
+    Time per pixel: 45.110279ms
+    Method Used: Row Major
+    Rotation: 90 degrees
+    ----------------------------------------
+    Overall time: 809167.000000ms
+    Time per pixel: 44.953724ms
+    Method Used: Row Major
+    Rotation: 180 degrees
+    ----------------------------------------
+    Overall time: 1315496.000000ms
+    Time per pixel: 73.083115ms
+    Method Used: Col Major
+    Rotation: 90 degrees
+    ----------------------------------------
+    Overall time: 960448.000000ms
+    Time per pixel: 53.358223ms
+    Method Used: Col Major
+    Rotation: 180 degrees
+    ----------------------------------------
+    Overall time: 1365740.000000ms
+    Time per pixel: 75.874443ms
+    Method Used: Block Major
+    Rotation: 90 degrees
+    ----------------------------------------
+    Overall time: 1389617.000000ms
+    Time per pixel: 77.200943ms
+    Method Used: Block Major
+    Rotation: 180 degrees
+    ----------------------------------------
+
+
+
+    /* test with large image */
+    Test image: mobo.ppm
+    Image size: 150MB
+
+    ----------------------------------------
+    Overall time: 3707697152.000000ms
+    Time per pixel: 74.244225ms
+    Method Used: Block Major
+    Rotation: 90 degrees
+    ----------------------------------------
+    Overall time: 3637466880.000000ms
+    Time per pixel: 72.837906ms
+    Method Used: Block Major
+    Rotation: 180 degrees
+    ----------------------------------------
+    Overall time: 5109926400.000000ms
+    Time per pixel: 102.322952ms
+    Method Used: Row Major
+    Rotation: 90 degrees
+    ----------------------------------------
+    Overall time: 2367582464.000000ms
+    Time per pixel: 47.409298ms
+    Method Used: Row Major
+    Rotation: 180 degrees
+    ----------------------------------------
+    Overall time: 5946372096.000000ms
+    Time per pixel: 119.072235ms
+    Method Used: Col Major
+    Rotation: 90 degrees
+    ----------------------------------------
+    Overall time: 8524106240.000000ms
+    Time per pixel: 170.689682ms
+    Method Used: Col Major
+    Rotation: 180 degrees
+    ----------------------------------------
+
+
+Analysis:
+------------
+
+    Column major traversal on the 90 degree rotated image is the more efficient
+    of the two since after rotation elements are now much closer to elements
+    above and below them in memory compared to the elements next to them.
+    Consequently, when the 180 degree rotation is applied elements are closer
+    to the elements to the left and right of them, resulting in much worse 
+    performance with col-major traversal. This conclusion is validated by 
+    our data, where the 90 degree rotation col major had a 199 ms time per
+    pixel while the 180 degree rotation had a 170 ms per pixel time.
+
+    Using this same principle, row major traversal on the 180 degree rotation
+    was the more efficient one and 90 degree rotation was worse. Once again,
+    our data supports this with the 47ms/pixel time of the 180 degree rotation
+    as opposed to the 102ms/pixel time of the 90 degree rotation.
+    
+    Compared to row major traversal, block major traversals will be slower 
+    since each individual block is not stored contiguously in memory, and 
+    thus accessing each new block requires loading the memory in from HRAM. 
+    Since rotations access memory by block, performance time is consistant 
+    across both 90˚ and 180˚ rotations.
+
+
+Time Spent: 
+---------------
+~20 hours total
